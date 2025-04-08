@@ -7,14 +7,14 @@ class MovementViewSet(viewsets.ModelViewSet):
     Vista para manejar operaciones CRUD sobre movimientos.
     """
     serializer_class = MovementSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Solo usuarios logueados pueden acceder
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         # Filtramos los movimientos para que el usuario solo vea los suyos
         return Movement.objects.filter(user=self.request.user).order_by('-date')
 
     def perform_create(self, serializer):
-        # Asignamos el usuario automáticamente cuando se crea un movimiento
+        # Asignamos el usuario automáticamente al crear un movimiento
         serializer.save(user=self.request.user)
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -25,5 +25,5 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Si las categorías son compartidas por todos los usuarios, devolvemos todas.
-        return Category.objects.all()
+        # Si las categorías son compartidas, devolvemos todas ordenadas por nombre
+        return Category.objects.all().order_by('name')
