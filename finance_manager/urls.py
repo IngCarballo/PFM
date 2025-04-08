@@ -1,9 +1,8 @@
-# Importamos funciones necesarias para manejar rutas
-from django.contrib import admin                           # Admin de Django
-from django.urls import path, include                      # path para definir rutas, include para incluir otras urls
+from django.contrib import admin
+from django.urls import path, include  # `include` permite traer las rutas definidas en otras apps
 
 # Lista de rutas principales del proyecto
 urlpatterns = [
-    path('admin/', admin.site.urls),                       # Ruta para acceder al panel de administración de Django
-    path('api/', include('movements.urls')),               # Incluye todas las URLs de la app 'movements' bajo el prefijo /api/
+    path('admin/', admin.site.urls),                        # Ruta para acceder al panel de administración de Django
+    path('api/', include('transactions.urls')),             # Incluye todas las URLs de la app 'transactions' bajo el prefijo /api/
 ]

@@ -41,7 +41,7 @@ class MovementSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     """
     Serializer para el modelo Category.
-    Se usa para crear, listar o representar categorías de transacciones.
+    Se usa para crear, listar o representar categorías de movimientos.
     """
 
     class Meta:
