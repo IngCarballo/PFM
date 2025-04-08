@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions
 from .models import Movement, Category
 from .serializers import MovementSerializer, CategorySerializer
+from django.db.models import Q
 
 class MovementViewSet(viewsets.ModelViewSet):
     """
@@ -25,5 +26,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Si las categorías son compartidas, devolvemos todas ordenadas por nombre
-        return Category.objects.all().order_by('name')
+        user = self.request.user
+        # Solo las categorías propias del usuario y las globales (user=None)
+        return Category.objects.filter(Q(user=user) | Q(user__isnull=True)).order_by('name')
+
+    def perform_create(self, serializer):
+        # Asignamos automáticamente el usuario que crea la categoría
+        serializer.save(user=self.request.user)
