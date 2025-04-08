@@ -11,6 +11,9 @@ class MovementViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Movement.objects.all().order_by('-date')
         # Filtramos los movimientos para que el usuario solo vea los suyos
         return Movement.objects.filter(user=self.request.user).order_by('-date')
 
@@ -27,6 +30,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if user.is_superuser:
+            return Category.objects.all().order_by('name')
         # Solo las categorías propias del usuario y las globales (user=None)
         return Category.objects.filter(Q(user=user) | Q(user__isnull=True)).order_by('name')
 
