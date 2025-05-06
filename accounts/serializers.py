@@ -18,6 +18,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Las contraseñas no coinciden."})
         return attrs
 
+
+
+
+
     def create(self, validated_data):
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
