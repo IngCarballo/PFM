@@ -6,33 +6,42 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema  # Importa extend_schema para documentar la vista
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken  # Para manejar tokens JWT
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
 
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)  # crea la sesión y guarda cookie
-            return Response({"message": "Sesión iniciada correctamente"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Credenciales inválidas"}, status=status.HTTP_401_UNAUTHORIZED)
+# class LoginView(APIView):
+#     def post(self, request):
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+#         user = authenticate(request, username=username, password=password)
+#         if user is not None:
+#             login(request, user)  # crea la sesión y guarda cookie
+#             return Response({"message": "Sesión iniciada correctamente"}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({"error": "Credenciales inválidas"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
     def post(self, request):
-        if request.user.is_authenticated:
-            logout(request)
-            return Response({"message": "Sesión cerrada"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "No hay sesión activa"}, status=status.HTTP_400_BAD_REQUEST)
+        # Si estás usando JWT, el logout invalida el refresh token
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()  # Marca el token como inválido
+            return Response({"message": "Sesión cerrada correctamente"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": "Token inválido o ya expirado"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Código anterior basado en cookies (comentado):
+        # if request.user.is_authenticated:
+        #     logout(request)
+        #     return Response({"message": "Sesión cerrada"}, status=status.HTTP_200_OK)
+        # else:
+        #     return Response({"error": "No hay sesión activa"}, status=status.HTTP_400_BAD_REQUEST)
 
 @extend_schema(
     summary="Actualizar el rol del usuario",
@@ -73,7 +82,7 @@ class UpdateUserRoleView(APIView):
         user.rol = new_role
         user.save()
         return Response({"message": "Rol actualizado correctamente.", "rol": user.rol}, status=status.HTTP_200_OK)
-    
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def current_user(request):
