@@ -8,17 +8,21 @@ class MovementViewSet(viewsets.ModelViewSet):
     Vista para manejar operaciones CRUD sobre movimientos.
     """
     serializer_class = MovementSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]  # Solo usuarios autenticados
 
     def get_queryset(self):
+        """
+        Filtra los movimientos para que el usuario solo vea los suyos.
+        """
         user = self.request.user
         if user.is_superuser:
-            return Movement.objects.all().order_by('-date')
-        # Filtramos los movimientos para que el usuario solo vea los suyos
-        return Movement.objects.filter(user=self.request.user).order_by('-date')
+            return Movement.objects.all().order_by('-date')  # Los superusuarios ven todo
+        return Movement.objects.filter(user=user).order_by('-date')  # Solo movimientos del usuario
 
     def perform_create(self, serializer):
-        # Asignamos el usuario automáticamente al crear un movimiento
+        """
+        Asigna automáticamente el usuario al crear un movimiento.
+        """
         serializer.save(user=self.request.user)
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -26,15 +30,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
     Vista para manejar operaciones CRUD sobre categorías.
     """
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]  # Solo usuarios autenticados
 
     def get_queryset(self):
+        """
+        Filtra las categorías para que el usuario solo vea las suyas y las globales.
+        """
         user = self.request.user
         if user.is_superuser:
-            return Category.objects.all().order_by('name')
-        # Solo las categorías propias del usuario y las globales (user=None)
-        return Category.objects.filter(Q(user=user) | Q(user__isnull=True)).order_by('name')
+            return Category.objects.all().order_by('name')  # Los superusuarios ven todo
+        return Category.objects.filter(Q(user=user) | Q(user__isnull=True)).order_by('name')  # Categorías propias y globales
 
     def perform_create(self, serializer):
-        # Asignamos automáticamente el usuario que crea la categoría
+        """
+        Asigna automáticamente el usuario al crear una categoría.
+        """
         serializer.save(user=self.request.user)
